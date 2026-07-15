@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Paleta cálida y neutra inspirada en la estética de Anthropic:
+ * fondos tipo papel/ivory, tipografía cálida casi-negra y un único acento
+ * coral/arcilla (#CC785C) usado con moderación.
+ */
+@layer base {
+  :root {
+    --background: 40 30% 97%;
+    --foreground: 24 12% 16%;
+    --card: 36 33% 99%;
+    --card-foreground: 24 12% 16%;
+    --popover: 36 33% 99%;
+    --popover-foreground: 24 12% 16%;
+    --primary: 15 52% 56%;
+    --primary-foreground: 40 30% 98%;
+    --secondary: 40 18% 92%;
+    --secondary-foreground: 24 14% 20%;
+    --muted: 40 16% 93%;
+    --muted-foreground: 25 8% 45%;
+    --accent: 40 22% 91%;
+    --accent-foreground: 24 14% 18%;
+    --destructive: 8 62% 48%;
+    --destructive-foreground: 40 30% 98%;
+    --border: 34 16% 87%;
+    --input: 34 16% 85%;
+    --ring: 15 52% 56%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 30 6% 11%;
+    --foreground: 40 20% 92%;
+    --card: 30 6% 14%;
+    --card-foreground: 40 20% 92%;
+    --popover: 30 6% 14%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 15 58% 62%;
+    --primary-foreground: 30 10% 12%;
+    --secondary: 30 5% 20%;
+    --secondary-foreground: 40 20% 92%;
+    --muted: 30 5% 18%;
+    --muted-foreground: 35 10% 62%;
+    --accent: 30 5% 23%;
+    --accent-foreground: 40 20% 92%;
+    --destructive: 8 55% 52%;
+    --destructive-foreground: 40 20% 95%;
+    --border: 30 5% 22%;
+    --input: 30 5% 24%;
+    --ring: 15 58% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern", "liga", "calt";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Números tabulares para que precios y totales no “bailen”. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Transición suave al alternar tema (sin afectar transform/opacity de UI). */
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-transition,
+  html.theme-transition * {
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      color 0.3s ease,
+      fill 0.3s ease;
+  }
+}
+
+/* Al imprimir/exportar la factura forzamos fondo blanco. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
