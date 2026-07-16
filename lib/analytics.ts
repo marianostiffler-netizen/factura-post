@@ -67,9 +67,48 @@ async function kpisFrom(salesTable: string): Promise<Kpis> {
     margenPct: facturacion > 0 ? (ganancia / facturacion) * 100 : 0,
   };
 }
+
+async function kpisFromRango(
+  salesTable: string,
+  fechaInicio: string,
+  fechaFin: string,
+): Promise<Kpis> {
+  const rows = await db.execute<{
+    n: number;
+    fact: string;
+    gan: string;
+    costo: string;
+  }>(sql`
+    select
+      count(*)::int as n,
+      coalesce(sum(total), 0) as fact,
+      coalesce(sum(total_ganancia), 0) as gan,
+      coalesce(sum(total_costo), 0) as costo
+    from ${sql.raw(salesTable)}
+    where fecha >= ${fechaInicio}::date and fecha <= ${fechaFin}::date
+  `);
+  const r = rows[0] ?? { n: 0, fact: "0", gan: "0", costo: "0" };
+  const ventas = Number(r.n);
+  const facturacion = Number(r.fact);
+  const ganancia = Number(r.gan);
+  const costo = Number(r.costo);
+  return {
+    ventas,
+    facturacion,
+    ganancia,
+    costo,
+    ticketPromedio: ventas > 0 ? facturacion / ventas : 0,
+    margenPct: facturacion > 0 ? (ganancia / facturacion) * 100 : 0,
+  };
+}
+
 // Minorista usa la tabla `sales`; mayorista, `sales_mayorista`. Nunca se mezclan.
 export const getKpis = () => kpisFrom("sales");
 export const getKpisMayorista = () => kpisFrom("sales_mayorista");
+export const getKpisRango = (fechaInicio: string, fechaFin: string) =>
+  kpisFromRango("sales", fechaInicio, fechaFin);
+export const getKpisRangoMayorista = (fechaInicio: string, fechaFin: string) =>
+  kpisFromRango("sales_mayorista", fechaInicio, fechaFin);
 
 async function serieDiariaFrom(
   salesTable: string,

@@ -1,7 +1,12 @@
 "use server";
 
-import { getSerieDiariaRango, getSerieDiariaRangoMayorista } from "@/lib/analytics";
-import type { SerieDia } from "@/lib/analytics";
+import {
+  getSerieDiariaRango,
+  getSerieDiariaRangoMayorista,
+  getKpisRango,
+  getKpisRangoMayorista,
+} from "@/lib/analytics";
+import type { SerieDia, Kpis } from "@/lib/analytics";
 
 /**
  * Server Action para obtener datos de ventas de un rango específico (minorista).
@@ -23,4 +28,26 @@ export async function getSerieDiariaRangoMayoristaAction(
   fechaFin: string,
 ): Promise<SerieDia[]> {
   return getSerieDiariaRangoMayorista(fechaInicio, fechaFin);
+}
+
+/**
+ * Server Action para obtener KPIs de un rango específico (minorista).
+ * Usado para mostrar totales que coinciden con el gráfico.
+ */
+export async function getKpisRangoAction(
+  fechaInicio: string,
+  fechaFin: string,
+): Promise<Kpis> {
+  return getKpisRango(fechaInicio, fechaFin);
+}
+
+/**
+ * Server Action para obtener KPIs de un rango específico (mayorista).
+ * Usado para mostrar totales que coinciden con el gráfico mayorista.
+ */
+export async function getKpisRangoMayoristaAction(
+  fechaInicio: string,
+  fechaFin: string,
+): Promise<Kpis> {
+  return getKpisRangoMayorista(fechaInicio, fechaFin);
 }

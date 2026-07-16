@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatPercent } from "@/lib/utils";
 import type { DiaSemana, SerieDia } from "@/lib/analytics";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -24,11 +24,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getSerieDiariaRangoAction,
   getSerieDiariaRangoMayoristaAction,
+  getKpisRangoAction,
+  getKpisRangoMayoristaAction,
 } from "./actions";
+import type { Kpis } from "@/lib/analytics";
 
 const tooltipStyle = {
   background: "hsl(var(--popover))",
@@ -41,6 +52,28 @@ const tooltipStyle = {
 function fmtDiaCorto(dia: string) {
   const [, m, d] = dia.split("-");
   return `${d}/${m}`;
+}
+
+function fmtDiaLargo(dia: string) {
+  const [year, month, day] = dia.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function fmtMesLargo(mes: string): string {
+  const meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+  const index = parseInt(mes, 10) - 1;
+  return meses[index] || mes;
+}
+
+function fmtRangoFechas(inicio: string, fin: string, viewMode: ViewMode): string {
+  if (viewMode === "mensual") {
+    const [year, month] = inicio.split("-");
+    return `${fmtMesLargo(month)} ${year}`;
+  }
+  return `${fmtDiaLargo(inicio)} - ${fmtDiaLargo(fin)}`;
 }
 
 function fmtAxisMoneda(v: number) {
@@ -272,6 +305,7 @@ export function VentasChartWithControls({
     inicio: string;
     fin: string;
   } | null>(null);
+  const [kpisRango, setKpisRango] = useState<Kpis | null>(null);
 
   // Calcular el rango inicial basado en los datos
   const calcularRangoInicial = () => {
@@ -306,9 +340,18 @@ export function VentasChartWithControls({
         ? getSerieDiariaRangoMayoristaAction
         : getSerieDiariaRangoAction;
 
-      const nuevosDatos = await action(inicioStr, finStr);
+      const kpisAction = esMayorista
+        ? getKpisRangoMayoristaAction
+        : getKpisRangoAction;
+
+      const [nuevosDatos, nuevosKpis] = await Promise.all([
+        action(inicioStr, finStr),
+        kpisAction(inicioStr, finStr),
+      ]);
+
       setData(nuevosDatos);
       setRangoActual({ inicio: inicioStr, fin: finStr });
+      setKpisRango(nuevosKpis);
     } catch (error) {
       console.error("Error al navegar al período anterior:", error);
     } finally {
@@ -339,9 +382,18 @@ export function VentasChartWithControls({
         ? getSerieDiariaRangoMayoristaAction
         : getSerieDiariaRangoAction;
 
-      const nuevosDatos = await action(inicioStr, finStr);
+      const kpisAction = esMayorista
+        ? getKpisRangoMayoristaAction
+        : getKpisRangoAction;
+
+      const [nuevosDatos, nuevosKpis] = await Promise.all([
+        action(inicioStr, finStr),
+        kpisAction(inicioStr, finStr),
+      ]);
+
       setData(nuevosDatos);
       setRangoActual({ inicio: inicioStr, fin: finStr });
+      setKpisRango(nuevosKpis);
     } catch (error) {
       console.error("Error al navegar al período siguiente:", error);
     } finally {
@@ -406,6 +458,41 @@ export function VentasChartWithControls({
           </Button>
         </div>
       </div>
+
+      {/* Rango de fechas */}
+      {rangoActual && (
+        <div className="text-sm text-muted-foreground">
+          {fmtRangoFechas(rangoActual.inicio, rangoActual.fin, viewMode)}
+        </div>
+      )}
+
+      {/* KPIs del rango actual */}
+      {kpisRango && (
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground">
+              Total del período
+            </p>
+            <p className="mt-1 font-serif text-lg font-medium tabular-nums">
+              {formatCurrency(kpisRango.facturacion)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {kpisRango.ventas} {kpisRango.ventas === 1 ? "venta" : "ventas"}
+            </p>
+          </div>
+          <div>
+            <p className="text-[0.7rem] font-medium uppercase tracking-wider text-muted-foreground">
+              Ganancia del período
+            </p>
+            <p className="mt-1 font-serif text-lg font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+              {formatCurrency(kpisRango.ganancia)}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Margen {formatPercent(kpisRango.margenPct)}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Gráfico */}
       {isLoading ? (
@@ -474,6 +561,42 @@ export function VentasChartWithControls({
             />
           </ComposedChart>
         </ResponsiveContainer>
+      )}
+
+      {/* Tabla de datos */}
+      {!isLoading && datosAMostrar.length > 0 && (
+        <div className="mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-[0.7rem] uppercase tracking-wider">
+                  {viewMode === "diario" ? "Fecha" : "Mes"}
+                </TableHead>
+                <TableHead className="text-right text-[0.7rem] uppercase tracking-wider">
+                  Ventas
+                </TableHead>
+                <TableHead className="text-right text-[0.7rem] uppercase tracking-wider">
+                  Total
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {datosAMostrar.map((item) => (
+                <TableRow key={item.dia}>
+                  <TableCell className="font-medium">
+                    {viewMode === "diario" ? fmtDiaLargo(item.dia) : fmtMesLargo(item.dia)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
+                    {item.ventas}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatCurrency(item.total)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );
