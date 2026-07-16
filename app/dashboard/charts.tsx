@@ -292,14 +292,12 @@ function fmtMesCorto(mes: string): string {
  * NO modifica el componente VentasChart existente, solo lo envuelve.
  */
 export function VentasChartWithControls({
-  initialData,
   esMayorista = false,
 }: {
-  initialData: SerieDia[];
   esMayorista?: boolean;
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>("diario");
-  const [data, setData] = useState<SerieDia[]>(initialData);
+  const [data, setData] = useState<SerieDia[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [rangoActual, setRangoActual] = useState<{
     inicio: string;
@@ -307,31 +305,36 @@ export function VentasChartWithControls({
   } | null>(null);
   const [kpisRango, setKpisRango] = useState<Kpis | null>(null);
 
-  // Calcular el rango inicial basado en los datos
+  // Calcular el rango inicial basado en el mes calendario actual completo
   const calcularRangoInicial = () => {
-    if (initialData.length === 0) return null;
-    const fechas = initialData.map((d) => d.dia).sort();
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = hoy.getMonth();
+
+    // Primer día del mes actual
+    const inicio = new Date(year, month, 1);
+    // Último día del mes actual
+    const fin = new Date(year, month + 1, 0);
+
     return {
-      inicio: fechas[0],
-      fin: fechas[fechas.length - 1],
+      inicio: inicio.toISOString().split("T")[0],
+      fin: fin.toISOString().split("T")[0],
     };
   };
 
-  // Navegar al período anterior
+  // Navegar al período anterior (mes calendario completo)
   const navegarAnterior = async () => {
     if (!rangoActual || isLoading) return;
 
     setIsLoading(true);
     try {
       const inicio = new Date(rangoActual.inicio);
-      const fin = new Date(rangoActual.fin);
-      const dias = Math.ceil((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+      const year = inicio.getFullYear();
+      const month = inicio.getMonth();
 
-      const nuevoFin = new Date(inicio);
-      nuevoFin.setDate(nuevoFin.getDate() - 1);
-
-      const nuevoInicio = new Date(nuevoFin);
-      nuevoInicio.setDate(nuevoInicio.getDate() - dias);
+      // Mes anterior completo
+      const nuevoInicio = new Date(year, month - 1, 1);
+      const nuevoFin = new Date(year, month, 0);
 
       const inicioStr = nuevoInicio.toISOString().split("T")[0];
       const finStr = nuevoFin.toISOString().split("T")[0];
@@ -359,21 +362,19 @@ export function VentasChartWithControls({
     }
   };
 
-  // Navegar al período siguiente
+  // Navegar al período siguiente (mes calendario completo)
   const navegarSiguiente = async () => {
     if (!rangoActual || isLoading) return;
 
     setIsLoading(true);
     try {
       const inicio = new Date(rangoActual.inicio);
-      const fin = new Date(rangoActual.fin);
-      const dias = Math.ceil((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+      const year = inicio.getFullYear();
+      const month = inicio.getMonth();
 
-      const nuevoInicio = new Date(fin);
-      nuevoInicio.setDate(nuevoInicio.getDate() + 1);
-
-      const nuevoFin = new Date(nuevoInicio);
-      nuevoFin.setDate(nuevoFin.getDate() + dias);
+      // Mes siguiente completo
+      const nuevoInicio = new Date(year, month + 1, 1);
+      const nuevoFin = new Date(year, month + 2, 0);
 
       const inicioStr = nuevoInicio.toISOString().split("T")[0];
       const finStr = nuevoFin.toISOString().split("T")[0];
@@ -401,18 +402,52 @@ export function VentasChartWithControls({
     }
   };
 
-  // Inicializar el rango cuando se monta el componente
+  // Inicializar el rango y cargar datos del mes calendario actual
   useEffect(() => {
-    if (!rangoActual) {
-      setRangoActual(calcularRangoInicial());
-    }
+    const cargarMesActual = async () => {
+      const rango = calcularRangoInicial();
+      if (!rango) return;
+
+      setIsLoading(true);
+      try {
+        const action = esMayorista
+          ? getSerieDiariaRangoMayoristaAction
+          : getSerieDiariaRangoAction;
+
+        const kpisAction = esMayorista
+          ? getKpisRangoMayoristaAction
+          : getKpisRangoAction;
+
+        const [datos, kpis] = await Promise.all([
+          action(rango.inicio, rango.fin),
+          kpisAction(rango.inicio, rango.fin),
+        ]);
+
+        setData(datos);
+        setRangoActual(rango);
+        setKpisRango(kpis);
+      } catch (error) {
+        console.error("Error al cargar datos del mes actual:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    cargarMesActual();
   }, []);
 
-  // Verificar si estamos en el período actual (hoy)
+  // Verificar si estamos en el período actual (mes calendario actual)
   const esPeriodoActual = () => {
     if (!rangoActual) return false;
-    const hoy = new Date().toISOString().split("T")[0];
-    return rangoActual.fin >= hoy;
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = hoy.getMonth();
+
+    // Primer y último día del mes actual
+    const inicioMesActual = new Date(year, month, 1).toISOString().split("T")[0];
+    const finMesActual = new Date(year, month + 1, 0).toISOString().split("T")[0];
+
+    return rangoActual.inicio === inicioMesActual && rangoActual.fin === finMesActual;
   };
 
   // Determinar qué datos mostrar según el modo de vista

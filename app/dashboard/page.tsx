@@ -282,14 +282,8 @@ export default async function DashboardPage() {
 
       {/* Gráfico */}
       <div className="mb-10">
-        <Panel eyebrow="Últimos 30 días" title="Ventas y ganancia">
-          {serie.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">
-              Todavía no hay ventas en el período.
-            </p>
-          ) : (
-            <VentasChartWithControls initialData={serie} />
-          )}
+        <Panel eyebrow="Ventas por mes" title="Ventas y ganancia">
+          <VentasChartWithControls />
         </Panel>
       </div>
 
@@ -612,14 +606,8 @@ export default async function DashboardPage() {
 
       {/* Serie diaria mayorista */}
       <div className="mb-10">
-        <Panel eyebrow="Mayorista · últimos 30 días" title="Ventas y ganancia">
-          {serieMay.length === 0 ? (
-            <p className="py-16 text-center text-sm text-muted-foreground">
-              Todavía no hay ventas mayoristas en el período.
-            </p>
-          ) : (
-            <VentasChartWithControls initialData={serieMay} esMayorista />
-          )}
+        <Panel eyebrow="Mayorista · Ventas por mes" title="Ventas y ganancia">
+          <VentasChartWithControls esMayorista />
         </Panel>
       </div>
 
