@@ -39,7 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, formatCurrency, formatPercent } from "@/lib/utils";
-import { BarrasHorizontales, DiaSemanaChart, VentasChart, VentasChartWithControls } from "./charts";
+import { BarrasHorizontales, DiaSemanaChart, VentasChartWithControls } from "./charts";
 
 export const dynamic = "force-dynamic";
 

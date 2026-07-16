@@ -220,7 +220,7 @@ function agruparPorMes(data: SerieDia[]): SerieDia[] {
   const agrupado = new Map<string, { total: number; ganancia: number; ventas: number }>();
 
   for (const item of data) {
-    const [, mes, dia] = item.dia.split("-");
+    const [, mes] = item.dia.split("-");
     const claveMes = mes; // Solo el mes (ej: "01", "02", etc.)
 
     const existente = agrupado.get(claveMes) || { total: 0, ganancia: 0, ventas: 0 };
