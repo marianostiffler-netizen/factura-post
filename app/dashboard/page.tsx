@@ -15,8 +15,6 @@ import {
   getMargenPorCategoria,
   getPorMetodo,
   getPorMetodoMayorista,
-  getSerieDiaria,
-  getSerieDiariaMayorista,
   getTopClientes,
   getTopProductos,
   getTopProductosMayorista,

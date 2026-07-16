@@ -403,6 +403,7 @@ export function VentasChartWithControls({
   };
 
   // Inicializar el rango y cargar datos del mes calendario actual
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const cargarMesActual = async () => {
       const rango = calcularRangoInicial();
