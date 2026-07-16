@@ -70,7 +70,6 @@ function Panel({
 export default async function DashboardPage() {
   const [
     kpis,
-    serie,
     porMetodo,
     top,
     comparativa,
@@ -81,7 +80,6 @@ export default async function DashboardPage() {
     diaSemana,
   ] = await Promise.all([
     getKpis(),
-    getSerieDiaria(30),
     getPorMetodo(),
     getTopProductos(10),
     getComparativaSemanal(),
@@ -95,14 +93,12 @@ export default async function DashboardPage() {
   // Analítica MAYORISTA, totalmente separada (otras tablas).
   const [
     kpisMay,
-    serieMay,
     topMay,
     porMetodoMay,
     porCategoriaMay,
     comparativaMay,
   ] = await Promise.all([
     getKpisMayorista(),
-    getSerieDiariaMayorista(30),
     getTopProductosMayorista(10),
     getPorMetodoMayorista(),
     getVentasPorCategoriaMayorista(),
