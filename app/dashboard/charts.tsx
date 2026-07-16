@@ -356,6 +356,13 @@ export function VentasChartWithControls({
     }
   }, []);
 
+  // Verificar si estamos en el período actual (hoy)
+  const esPeriodoActual = () => {
+    if (!rangoActual) return false;
+    const hoy = new Date().toISOString().split("T")[0];
+    return rangoActual.fin >= hoy;
+  };
+
   // Determinar qué datos mostrar según el modo de vista
   const datosAMostrar = viewMode === "mensual" ? agruparPorMes(data) : data;
 
@@ -383,7 +390,7 @@ export function VentasChartWithControls({
             variant="outline"
             size="sm"
             onClick={navegarAnterior}
-            disabled={isLoading || data.length === 0}
+            disabled={isLoading}
           >
             <ChevronLeft className="size-4" />
             Anterior
@@ -392,7 +399,7 @@ export function VentasChartWithControls({
             variant="outline"
             size="sm"
             onClick={navegarSiguiente}
-            disabled={isLoading || data.length === 0}
+            disabled={isLoading || esPeriodoActual()}
           >
             Siguiente
             <ChevronRight className="size-4" />
