@@ -444,9 +444,8 @@ export function VentasChartWithControls({
     const year = hoy.getFullYear();
     const month = hoy.getMonth();
 
-    // Primer y último día del mes actual
+    // Primer día del mes actual
     const inicioMesActual = new Date(year, month, 1).toISOString().split("T")[0];
-    const finMesActual = new Date(year, month + 1, 0).toISOString().split("T")[0];
 
     // Solo deshabilitar si estamos exactamente en el mes calendario actual
     return rangoActual.inicio === inicioMesActual;
