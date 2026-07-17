@@ -332,7 +332,7 @@ export function VentasChartWithControls({
       const year = inicio.getFullYear();
       const month = inicio.getMonth();
 
-      // Mes anterior completo
+      // Mes anterior completo (basado siempre desde día 1)
       const nuevoInicio = new Date(year, month - 1, 1);
       const nuevoFin = new Date(year, month, 0);
 
@@ -372,7 +372,7 @@ export function VentasChartWithControls({
       const year = inicio.getFullYear();
       const month = inicio.getMonth();
 
-      // Mes siguiente completo
+      // Mes siguiente completo (basado siempre desde día 1)
       const nuevoInicio = new Date(year, month + 1, 1);
       const nuevoFin = new Date(year, month + 2, 0);
 
@@ -448,7 +448,8 @@ export function VentasChartWithControls({
     const inicioMesActual = new Date(year, month, 1).toISOString().split("T")[0];
     const finMesActual = new Date(year, month + 1, 0).toISOString().split("T")[0];
 
-    return rangoActual.inicio === inicioMesActual && rangoActual.fin === finMesActual;
+    // Solo deshabilitar si estamos exactamente en el mes calendario actual
+    return rangoActual.inicio === inicioMesActual;
   };
 
   // Determinar qué datos mostrar según el modo de vista
